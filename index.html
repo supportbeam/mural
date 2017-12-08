@@ -1,0 +1,138 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat example</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        width: 100%;
+        height: auto;
+        font: 14px Helvetica, Arial;
+      }
+      form {
+        position: fixed;
+        width: 100%;
+        height: 20%;
+        padding: 3px;
+        background: #000;
+        bottom: 0;
+        text-align: center;
+      }
+
+      form button {
+        width: 80%;
+        height: 80%;
+        background: rgb(130, 224, 255);
+        border: none;
+        padding: 10px;
+        font-size: 3em;
+      }
+      table tr td{
+        font-size: 1em;
+      }
+      #messages {
+        list-style-type: none;
+        font-size: 1em;
+        margin: 0;
+        padding: 0;
+        height: auto;
+      }
+      #messages li {
+        padding: 5px 10px;
+        position: relative;
+        display: block;
+      }
+      #messages li:nth-child(odd) {
+        background: #eee;
+      }
+    </style>
+  </head>
+  <body id="all">
+    <table>
+      <tr><td>X</td><td id="orientationX">0</td></tr>
+      <tr><td>Y</td><td id="orientationY">0</td></tr>
+      <tr><td>Z</td><td id="orientationZ">0</td></tr>
+    </table>
+    <script>
+      $(function () {
+        let socket = io();
+
+        //Button for manual submitting of motion data
+        // $('form').submit(function(){ //Here we could have the script send based on gyroscope change
+        //   // socket.emit('chat message', $('#orientationX').text());
+        //   return false;
+        // });
+
+        //MOTION DETECTOR START
+        if (!Array.prototype.last) {
+          Array.prototype.last = function() {
+            return this[this.length - 1];
+          }
+          // Artifical loading for a bit to make sure the gyro loads the data first
+          setTimeout(function() {
+            console.log("Loading for 500ms.");
+          }, 500)
+
+          //To store previous orientation data
+          // var historicOrientation = {
+          //   "x": [],
+          //   "y": [],
+          //   "z": []
+          // }
+
+          var isMobile = navigator.userAgent.match(/(iPhone|iPod|iPad|Android)/);
+          if (isMobile != null) {
+            // window.addEventListener("deviceorientation", orientation, false);
+            function updateScroll(){
+              var element = document.getElementById("bottom");
+              element.scrollTop = element.scrollHeight;
+            }
+
+            window.addEventListener("deviceorientation", function(event){
+              //Displays Motion Data on the page
+              setInterval(function(){
+                  socket.emit('chat message', " X:" + Math.round(event.alpha) + ", Y:" + Math.round(event.beta) + ", Z:" + Math.round(event.gamma));
+                  var element = document.getElementById("all");
+                  element.scrollTop = element.scrollHeight;
+              }, 60000
+              );
+            }, false);
+
+
+            // function orientation(event) {
+            //   //Displays motion data in real time on table element
+            //   document.getElementById("orientationX").textContent = Math.round(event.alpha)
+            //   document.getElementById("orientationY").textContent = Math.round(event.beta)
+            //   document.getElementById("orientationZ").textContent = Math.round(event.gamma)
+            //
+            //   //To record previous orientation data
+            //   //Pushes motion data on separate arrays
+            //   // historicOrientation["x"].push(event.alpha)
+            //   // historicOrientation["y"].push(event.beta)
+            //   // historicOrientation["z"].push(event.gamma)
+            // }
+          }
+        };
+        //MOTION DETECTOR END
+
+        //Display emits
+        socket.on('chat message', function(msg){
+          $('#messages').append($('<li>').text(msg));
+        })
+      });
+    </script>
+    <ul id="messages"></ul>
+    <!-- <form action="">
+      <button id="send-button">Push</button>
+    </form> -->
+    <p id="bottom">
+      &nbsp;
+    </p>
+  </body>
+</html>
