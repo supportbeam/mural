@@ -1,10 +1,18 @@
-let app = require('express')();
+let express = require('express');
+let app = express();
+let path = require('path');
 let http = require('http').Server(app);
 let io = require('socket.io')(http);
 
-app.get('/', function(req, res){
-  res.sendFile(__dirname + '/index.html');
+http.listen(3000, '0.0.0.0', function(){
+  console.log('listening on *:3000');
 });
+
+// app.get('/', function(req, res){
+//   res.sendFile(__dirname + '/index.html');
+// });
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 let numUsers = 0;
 
@@ -32,7 +40,7 @@ io.on('connection', function(socket){
     });
 
     //Echo to everyone that someone connected
-    socket.broadcast.emit('user joined', {
+    socket.broadcast.emit('user joined', { //This is sending an object with usrname and numuser properties, their values are socket.username and numUsers the vairable
       username: socket.username,
       numUsers: numUsers
     });
@@ -56,8 +64,4 @@ io.on('connection', function(socket){
 
 
 
-});
-
-http.listen(3000, '0.0.0.0', function(){
-  console.log('listening on *:3000');
 });

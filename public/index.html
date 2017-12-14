@@ -24,7 +24,7 @@
         socket.on('login', function(data){
           connected = true;
           //Display a message when they login, for now in console
-          console.log("You logged in! there this many users: " + data.numUsers);
+          console.log("You logged in! there this many users: " + data.numUsers); //Here we have to do data.numUsers because data is actually an object like an JSON object and numUsers is a property of that object
         });
 
         socket.on('user joined', function(data){
