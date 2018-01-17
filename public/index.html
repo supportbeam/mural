@@ -3,9 +3,8 @@
   <head>
     <title>Socket.IO chat example</title>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
-      $(function () {
+      document.addEventListener("DOMContentLoaded", function(event) {
         let socket = io();
 
         let connected = false;
@@ -49,18 +48,20 @@
         // }
 
 
-        $('form').submit(function(){ //Here we could have the script send based on gyroscope change
-          let input = document.getElementById('m').value;
-          socket.emit('color', input, (data) => {
-            console.log(data);
-          });
-          socket.emit('chat message', $('#m').val()); //This .val would be where we pass our colour to the database
-          $('#m').val('');
-          return false;
-        });
-        socket.on('color', (data) => {   //This posts the data back to everyone in the chat
-          $('#messages').append($('<li>').text(data));
-        });
+        // $('form').submit(function(){ //Here we could have the script send based on gyroscope change
+        //   let input = document.getElementById('m').value;
+        //   socket.emit('color', input, (data) => {
+        //     console.log(data);
+        //   });
+        //   socket.emit('chat message', $('#m').val()); //This .val would be where we pass our colour to the database
+        //   $('#m').val('');
+        //   return false;
+        // });
+        // socket.on('color', (data) => {   //This posts the data back to everyone in the chat
+        //   $('#messages').append($('<li>').text(data));
+        // });
+
+        
         // socket.on('chat message', function(msg){
         //   $('#messages').append($('<li>').text(msg));
         // })
