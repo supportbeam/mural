@@ -4,10 +4,6 @@ let path = require('path');
 let http = require('http').Server(app);
 let io = require('socket.io')(http);
 
-http.listen(3000, '0.0.0.0', function(){
-  console.log('listening on *:3000');
-});
-
 // app.get('/', function(req, res){
 //   res.sendFile(__dirname + '/index.html');
 // });
@@ -16,12 +12,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 let numUsers = 0;
 
-io.on('connection', function(socket){
-  socket.on('color', (name, fn) => {
-    fn(name);
-    io.emit('color', name); //this will send the data to help us display the typed name for everyone
-  });
-});
+// io.on('connection', function(socket){
+//   socket.on('color', (name, fn) => {
+//     fn(name);
+//     io.emit('color', name); //this will send the data to help us display the typed name for everyone
+//   });
+// });
 
 io.on('connection', function(socket){
 
@@ -62,6 +58,11 @@ io.on('connection', function(socket){
     socket.broadcast.emit('chat message', msg);
   });
 
+  socket.on('spawnParticle', (data) => socket.broadcast.emit('spawnParticle', data));
+  //This takes the spawnParticle event from the client, then redistributes that data to the other clients
 
+});
 
+http.listen(3000, '0.0.0.0', function(){
+  console.log('listening on *:3000');
 });

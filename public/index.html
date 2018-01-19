@@ -1,87 +1,264 @@
 <!doctype html>
 <html>
   <head>
-    <title>Socket.IO chat example</title>
+    <title>Mural</title>
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", function(event) {
-        let socket = io();
-
-        let connected = false;
-
-        function setUsername(){
-          username = socket.id;
-          socket.emit('add user', username);
+    <link rel="stylesheet" href="css/example.css">
+    <style type="text/css">
+        html, body {
+            background: #222;
         }
-
-
-        socket.on('connect', () => { //This code is taking a users unique socket.id and printing it in the
-          setUsername();
-          console.log(socket.id);   //console when the 'connect' event is triggered
-        });
-
-        socket.on('login', function(data){
-          connected = true;
-          //Display a message when they login, for now in console
-          console.log("You logged in! there this many users: " + data.numUsers); //Here we have to do data.numUsers because data is actually an object like an JSON object and numUsers is a property of that object
-        });
-
-        socket.on('user joined', function(data){
-          console.log(data.username + " joined!");
-        });
-
-        socket.on('user left', function(data){
-          console.log(data.username + " left!");
-        });
-
-
-        //Using hashing to select a users color?
-        // function getUsernameColor (username) {
-        //   // Compute hash code
-        //   var hash = 7;
-        //   for (var i = 0; i < username.length; i++) {
-        //      hash = username.charCodeAt(i) + (hash << 5) - hash;
-        //   }
-        //   // Calculate color
-        //   var index = Math.abs(hash % COLORS.length);
-        //   return COLORS[index];
-        // }
-
-
-        // $('form').submit(function(){ //Here we could have the script send based on gyroscope change
-        //   let input = document.getElementById('m').value;
-        //   socket.emit('color', input, (data) => {
-        //     console.log(data);
-        //   });
-        //   socket.emit('chat message', $('#m').val()); //This .val would be where we pass our colour to the database
-        //   $('#m').val('');
-        //   return false;
-        // });
-        // socket.on('color', (data) => {   //This posts the data back to everyone in the chat
-        //   $('#messages').append($('<li>').text(data));
-        // });
-
-        
-        // socket.on('chat message', function(msg){
-        //   $('#messages').append($('<li>').text(msg));
-        // })
-      });
-    </script>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; height:200px; font-size:5em;}
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; height:200px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
     </style>
+    <script>
+      // document.addEventListener("DOMContentLoaded", function(event) {
+      //   let socket = io();
+      //
+      //   let connected = false;
+      //
+      //   //Runs when its called in the connect event
+      //   function setUsername(){
+      //     username = socket.id;
+      //     socket.emit('add user', username);
+      //   }
+      //
+      //
+      //   socket.on('connect', () => { //This code is taking a users unique socket.id and printing it in the console when the 'connect' event is triggered
+      //
+      //     setUsername();
+      //     console.log(socket.id);
+      //   });
+      //
+      //   socket.on('login', function(data){
+      //     connected = true;
+      //     //Display a message when they login, for now in console
+      //     console.log("You logged in! there this many users: " + data.numUsers); //Here we have to do data.numUsers because data is actually an object like an JSON object and numUsers is a property of that object
+      //   });
+      //
+      //   socket.on('user joined', function(data){
+      //     console.log(data.username + " joined!");
+      //   });
+      //
+      //   socket.on('user left', function(data){
+      //     console.log(data.username + " left!");
+      //   });
+      // });
+    </script>
   </head>
   <body>
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
+      <pre class="output"></pre>
+      <div id="container"></div>
+      <script src="js/sketch.js"></script>
+      <script>
+
+      let socket = io();
+
+      // ----------------------------------------
+      // Particle
+      // ----------------------------------------
+
+      function Particle( x, y, radius ) {
+          this.init( x, y, radius );
+      }
+
+      Particle.prototype = {
+
+          init: function( x, y, radius ) {
+
+              this.alive = true;
+
+              this.radius = radius || 10;
+              this.wander = 0.15;
+              this.theta = random( TWO_PI );
+              this.drag = 0.92;
+              this.color = '#fff';
+
+              this.x = x || 0.0;
+              this.y = y || 0.0;
+
+              this.vx = 0.0;
+              this.vy = 0.0;
+          },
+
+          move: function() {
+
+              this.x += this.vx;
+              this.y += this.vy;
+
+              this.vx *= this.drag;
+              this.vy *= this.drag;
+
+              this.theta += random( -0.5, 0.5 ) * this.wander;
+              this.vx += sin( this.theta ) * 0.1;
+              this.vy += cos( this.theta ) * 0.1;
+
+              this.radius *= 0.96;
+              this.alive = this.radius > 0.5;
+          },
+
+          draw: function( ctx ) {
+
+              ctx.beginPath();
+              ctx.arc( this.x, this.y, this.radius, 0, TWO_PI );
+              ctx.fillStyle = this.color;
+              ctx.fill();
+          }
+      };
+
+      // ----------------------------------------
+      // Example
+      // ----------------------------------------
+
+      var MAX_PARTICLES = 280;
+      var COLOURS = [ '#69D2E7', '#A7DBD8', '#E0E4CC', '#F38630', '#FA6900', '#FF4E50', '#F9D423' ];
+
+      var particles = [];
+      var pool = [];
+
+      var demo = Sketch.create({
+          container: document.getElementById( 'container' ),
+          retina: 'auto'
+      });
+
+      demo.setup = function() {
+
+          // Set off some initial particles without user input.
+          var i, x, y;
+
+          for ( i = 0; i < 20; i++ ) {
+              x = ( demo.width * 0.5 ) + random( -100, 100 );
+              y = ( demo.height * 0.5 ) + random( -100, 100 );
+              demo.spawn( x, y );
+          }
+      };
+
+      // create particles with x, y coordinate input
+      demo.spawn = function( x, y ) {
+
+          var particle, theta, force;
+
+          if ( particles.length >= MAX_PARTICLES )
+              pool.push( particles.shift() );
+
+          particle = pool.length ? pool.pop() : new Particle();
+          particle.init( x, y, random( 5, 40 ) );
+
+          particle.wander = random( 0.5, 2.0 );
+          particle.color = random( COLOURS );
+          particle.drag = random( 0.9, 0.99 );
+
+          theta = random( TWO_PI );
+          force = random( 2, 8 );
+
+          particle.vx = sin( theta ) * force;
+          particle.vy = cos( theta ) * force;
+
+          particles.push( particle );
+
+          socket.emit('spawnParticle', {
+            x: x,
+            y: y,
+            color: particle.color
+          });
+      };
+
+      setInterval(function(){
+      }, 1000);
+
+      demo.update = function() {
+
+          var i, particle;
+
+          for ( i = particles.length - 1; i >= 0; i-- ) {
+
+              particle = particles[i];
+
+              if ( particle.alive ) particle.move();
+              else pool.push( particles.splice( i, 1 )[0] );
+          }
+      };
+
+      demo.draw = function() {
+
+          demo.globalCompositeOperation  = 'lighter';
+
+          for ( var i = particles.length - 1; i >= 0; i-- ) {
+              particles[i].draw( demo );
+          }
+      };
+
+
+      demo.mousemove = function() {
+          var particle, theta, force, touch, max, i, j, n;
+
+          for ( i = 0, n = demo.touches.length; i < n; i++ ) {
+              console.log(demo.touches);
+
+              touch = demo.touches[i], max = random( 1, 4 );
+              for ( j = 0; j < max; j++ ) {
+                console.log(touch.x, touch.y);
+                demo.spawn( touch.x, touch.y );
+              }
+          }
+      };
+
+      function handleOrientation(event){
+        var particle, theta, force, touch, max, i, j, n;
+        var y = event.beta;  // In degree in the range [-180,180]
+        var x = event.gamma; // In degree in the range [-90,90]
+        var output = document.querySelector('.output');
+
+        // Because we don't want to have the device upside down
+        // We constrain the x value to the range [-90,90]
+        if (x >  90) { x =  90};
+        if (x < -90) { x = -90};
+
+        // To make computation easier we shift the range of
+        // x and y to [0,180]
+        x += 90;
+        y += 90;
+
+        var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+        var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+        x  = (w*x/180 - 10);
+        y = (h*y/180 - 10);
+
+        output.innerHTML  = "x beta : " + x + "\n";
+        output.innerHTML += "y gamma: " + y + "\n";
+
+        // spawn particles
+        demo.spawn(x, y);
+      };
+
+      socket.on('spawnParticle', onSpawnEvent);
+
+      function onSpawnEvent(data){
+        demo.spawn(data.x, data.y);
+      }
+
+      
+
+      if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', throttle(handleOrientation, 100));
+        //This is the event that ends up drawing particles
+      } else {
+        alert("Sorry, your browser doesn't support Device Orientation");
+      }
+      // END PARTICLES
+
+
+      //Delay function taken from socket.io whiteboard Example
+      function throttle(callback, delay) {
+        var previousCall = new Date().getTime();
+        return function() {
+          var time = new Date().getTime();
+
+          if ((time - previousCall) >= delay) {
+            previousCall = time;
+            callback.apply(null, arguments);
+          }
+        };
+      }
+
+      </script>
   </body>
 </html>
