@@ -25,8 +25,6 @@
 
       let socket = io();
 
-
-
       // ----------------------------------------
       // Particle
       // ----------------------------------------
@@ -66,8 +64,13 @@
               this.vx += sin( this.theta ) * 0.1;
               this.vy += cos( this.theta ) * 0.1;
 
-              this.radius *= 0.96;
-              this.alive = this.radius > 0.5;
+              // this.radius *= 0.96;
+              this.radius *= 0.99;
+              // this.alive = this.radius > 0.5;
+              this.alive = this.radius > 15; // circles land when radius is greater than 10.8 (set the final radius of circles)
+
+
+              this.alive = false; //Stops particles from flying away
           },
 
           draw: function( ctx ) {
@@ -122,7 +125,8 @@
         console.log(data.username + " left!");
       });
 
-      var MAX_PARTICLES = 8; //Changed from 250 to 8
+      //Commented out
+      //var MAX_PARTICLES = 8; //Changed from 250 to 8
       //Moved colours array up to where the socket information is
 
       var particles = [];
@@ -133,27 +137,31 @@
           retina: 'auto'
       });
 
-      demo.setup = function() {
-
-          // Set off some initial particles without user input.
-          var i, x, y;
-
-          for ( i = 0; i < 5; i++ ) { //Changed from i<20 to i<5
-              x = ( demo.width * 0.5 ) + random( -100, 100 );
-              y = ( demo.height * 0.5 ) + random( -100, 100 );
-              demo.spawn( x, y );
-          }
-      };
+      // demo.setup = function() {
+      //
+      //     // Set off some initial particles without user input.
+      //     var i, x, y;
+      //
+      //     for ( i = 0; i < 2; i++ ) { //Changed from i<5 to i<2
+      //         x = ( demo.width * 0.5 ) + random( -100, 100 );
+      //         y = ( demo.height * 0.5 ) + random( -100, 100 );
+      //         demo.spawn( x, y );
+      //     }
+      // };
 
       // create particles with x, y coordinate input
       demo.spawn = function( x, y, colour ) {
 
           var particle, theta, force;
 
-          if ( particles.length >= MAX_PARTICLES )
-              pool.push( particles.shift() );
+          //Commented this out and added the = new Particle() to make them permananet
+          // if ( particles.length >= MAX_PARTICLES )
+          //     pool.push( particles.shift() );
+          //
+          // particle = pool.length ? pool.pop() : new Particle();
 
-          particle = pool.length ? pool.pop() : new Particle();
+          particle = new Particle();
+
           particle.init( x, y, random( 5, 40 ) );
 
           particle.wander = random( 0.5, 2.0 );
@@ -171,15 +179,14 @@
 
           particles.push( particle );
 
+          //particles = particles.splice(particles.length-1);
+
           socket.emit('spawnParticle', {
             x: x,
             y: y,
             colour: colour
           });
       };
-
-      // setInterval(function(){
-      // }, 1000);
 
       demo.update = function() {
 
@@ -190,7 +197,9 @@
               particle = particles[i];
 
               if ( particle.alive ) particle.move();
-              else pool.push( particles.splice( i, 1 )[0] );
+
+              //Commented out the else to make particles permanent
+              //else pool.push( particles.splice( i, 1 )[0] );
           }
       };
 
@@ -208,13 +217,25 @@
           var particle, theta, force, touch, max, i, j, n;
 
           for ( i = 0, n = demo.touches.length; i < n; i++ ) {
-              console.log(demo.touches);
+              //console.log(demo.touches);
 
-              touch = demo.touches[i], max = random( 1, 4 );
-              for ( j = 0; j < max; j++ ) {
-                console.log(touch.x, touch.y);
-                demo.spawn( touch.x, touch.y, colour);
-              }
+              //Removed the max
+              //touch = demo.touches[i], max = random( 1, 4 );
+              touch = demo.touches[i];
+
+              // setTimeout(function(){ //didn't work
+              //   demo.spawn( touch.x, touch.y, colour);
+              // }, 100);
+
+              demo.spawn( touch.x, touch.y, colour);
+
+              // for ( j = 0; j < max; j++ ) {
+              //   console.log(touch.x, touch.y);
+              //   demo.spawn( touch.x, touch.y, colour);
+              // }
+              console.log(particles);
+              //This removes all items from array except the last 4, only works for mouse move
+              //particles = particles.splice(particles.length-5);
           }
       };
 
@@ -244,16 +265,17 @@
 
         // spawn particles
         demo.spawn(x, y, colour);
+        console.log(particles);
       };
 
       socket.on('spawnParticle', onSpawnEvent);
 
-      //We need to rewrite the spawn function to accept colours as well as coordinates
       function onSpawnEvent(data){
+        // setTimeout(function(){
+        //   demo.spawn(data.x, data.y, data.colour);
+        // }, 100);
         demo.spawn(data.x, data.y, data.colour);
       }
-
-
 
 
       if (window.DeviceOrientationEvent) {
@@ -263,7 +285,6 @@
         alert("Sorry, your browser doesn't support Device Orientation");
       }
       // END PARTICLES
-
 
       //Delay function taken from socket.io whiteboard Example
       function throttle(callback, delay) {

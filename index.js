@@ -65,7 +65,9 @@ io.on('connection', function(socket){
     socket.broadcast.emit('chat message', msg);
   });
 
-  socket.on('spawnParticle', (data) => socket.broadcast.emit('spawnParticle', data));
+
+  socket.on('spawnParticle', (data) => socket.volatile.broadcast.emit('spawnParticle', data));
+  //The volatile messages can be dropped and won't always be sent
   //This takes the spawnParticle event from the client, then redistributes that data to the other clients
 
 });
