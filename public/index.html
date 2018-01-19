@@ -126,7 +126,8 @@
       });
 
       //Commented out
-      //var MAX_PARTICLES = 8; //Changed from 250 to 8
+      var MAX_PARTICLES = 280; //Changed from 250 to 8
+      //all of the users share this max of particles, so if one user draws more the others users' particles will disappear, is a bit odd if there is on a single user however
       //Moved colours array up to where the socket information is
 
       var particles = [];
@@ -137,6 +138,7 @@
           retina: 'auto'
       });
 
+      //Don't need starter particles
       // demo.setup = function() {
       //
       //     // Set off some initial particles without user input.
@@ -155,12 +157,13 @@
           var particle, theta, force;
 
           //Commented this out and added the = new Particle() to make them permananet
-          // if ( particles.length >= MAX_PARTICLES )
-          //     pool.push( particles.shift() );
-          //
-          // particle = pool.length ? pool.pop() : new Particle();
+          //Added this bit back in with the max_particles set to 280
+          if ( particles.length >= MAX_PARTICLES )
+              pool.push( particles.shift() );
 
-          particle = new Particle();
+          particle = pool.length ? pool.pop() : new Particle();
+
+          //particle = new Particle();
 
           particle.init( x, y, random( 5, 40 ) );
 
@@ -179,7 +182,9 @@
 
           particles.push( particle );
 
-          //particles = particles.splice(particles.length-1);
+          //particles = particles.splice(particles.length-20);
+          //If we uncomment this line the code tries to redraw every circle that is on the screen currently which is terrible for performance
+          //We might want an if statement here for when we get TOO many particles on the screen at once.
 
           socket.emit('spawnParticle', {
             x: x,
