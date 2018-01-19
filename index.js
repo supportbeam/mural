@@ -24,27 +24,34 @@ io.on('connection', function(socket){
   let addedUser = false;
 
   //when the client emits the "add user" event, this listens and executes
-  socket.on('add user', function(username){
+  socket.on('add user', function(data){
     if (addedUser) return;
+    if(numUsers <= 5) {
+      //We'll store their usename in the socket session for this client
+      socket.username = data.username;
+      colour = data.colour;
+      ++numUsers;
+      addedUser = true;
+      socket.emit('login', {
+        numUsers: numUsers
+      });
 
-    //We'll store their usename in the socket session for this client
-    socket.username = username;
-    ++numUsers;
-    addedUser = true;
-    socket.emit('login', {
-      numUsers: numUsers
-    });
-
-    //Echo to everyone that someone connected
-    socket.broadcast.emit('user joined', { //This is sending an object with usrname and numuser properties, their values are socket.username and numUsers the vairable
-      username: socket.username,
-      numUsers: numUsers
-    });
+      //Echo to everyone that someone connected
+      socket.broadcast.emit('user joined', { //This is sending an object with usrname and numuser properties, their values are socket.username and numUsers the vairable
+        username: socket.username,
+        colour: colour,
+        numUsers: numUsers
+      });
+    } else {
+      addedUser = false;
+      socket.breadcast.to(data.username).emit('failedJoin', {});
+    }
   });
 
   socket.on('disconnect', function(){
     if(addedUser) {
       --numUsers;
+      socket.username = null;
 
       socket.broadcast.emit('user left', {
         username: socket.username,

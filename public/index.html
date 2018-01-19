@@ -13,34 +13,7 @@
       // document.addEventListener("DOMContentLoaded", function(event) {
       //   let socket = io();
       //
-      //   let connected = false;
       //
-      //   //Runs when its called in the connect event
-      //   function setUsername(){
-      //     username = socket.id;
-      //     socket.emit('add user', username);
-      //   }
-      //
-      //
-      //   socket.on('connect', () => { //This code is taking a users unique socket.id and printing it in the console when the 'connect' event is triggered
-      //
-      //     setUsername();
-      //     console.log(socket.id);
-      //   });
-      //
-      //   socket.on('login', function(data){
-      //     connected = true;
-      //     //Display a message when they login, for now in console
-      //     console.log("You logged in! there this many users: " + data.numUsers); //Here we have to do data.numUsers because data is actually an object like an JSON object and numUsers is a property of that object
-      //   });
-      //
-      //   socket.on('user joined', function(data){
-      //     console.log(data.username + " joined!");
-      //   });
-      //
-      //   socket.on('user left', function(data){
-      //     console.log(data.username + " left!");
-      //   });
       // });
     </script>
   </head>
@@ -51,6 +24,8 @@
       <script>
 
       let socket = io();
+
+
 
       // ----------------------------------------
       // Particle
@@ -108,8 +83,47 @@
       // Example
       // ----------------------------------------
 
-      var MAX_PARTICLES = 280;
+
       var COLOURS = [ '#69D2E7', '#A7DBD8', '#E0E4CC', '#F38630', '#FA6900', '#FF4E50', '#F9D423' ];
+
+      let connected = false;
+      let username, colour;
+      //Runs when its called in the connect event
+      function setUsername(){
+        username = socket.id;
+        colour = random( COLOURS );
+        socket.emit('add user', {
+          username: username,
+          colour: colour
+        });
+        console.log(username + " " + colour);
+      }
+
+      socket.on('connect', () => { //This code is taking a users unique socket.id and printing it in the console when the 'connect' event is triggered
+        setUsername();
+      });
+
+      socket.on('login', function(data){
+        connected = true;
+        //Display a message when they login, for now in console
+        console.log("You logged in! there this many users: " + data.numUsers); //Here we have to do data.numUsers because data is actually an object like an JSON object and numUsers is a property of that object
+      });
+
+      socket.on('failedJoin', function(data){
+        connected = false;
+        console.log("Too many users, unable to log in at this time");
+      });
+
+      socket.on('user joined', function(data){
+        console.log(data.username + " joined, they are colour " + data.colour);
+      });
+
+      socket.on('user left', function(data){
+        console.log(data.username + " left!");
+      });
+
+      var MAX_PARTICLES = 8; //Changed from 250 to 8
+      //Moved colours array up to where the socket information is
 
       var particles = [];
       var pool = [];
@@ -124,7 +138,7 @@
           // Set off some initial particles without user input.
           var i, x, y;
 
-          for ( i = 0; i < 20; i++ ) {
+          for ( i = 0; i < 5; i++ ) { //Changed from i<20 to i<5
               x = ( demo.width * 0.5 ) + random( -100, 100 );
               y = ( demo.height * 0.5 ) + random( -100, 100 );
               demo.spawn( x, y );
@@ -132,7 +146,7 @@
       };
 
       // create particles with x, y coordinate input
-      demo.spawn = function( x, y ) {
+      demo.spawn = function( x, y, colour ) {
 
           var particle, theta, force;
 
@@ -143,7 +157,10 @@
           particle.init( x, y, random( 5, 40 ) );
 
           particle.wander = random( 0.5, 2.0 );
-          particle.color = random( COLOURS );
+          particle.color = colour;
+
+          //particle.color = random( COLOURS );
+          //Here we would use the user assigned colour instead of random
           particle.drag = random( 0.9, 0.99 );
 
           theta = random( TWO_PI );
@@ -157,12 +174,12 @@
           socket.emit('spawnParticle', {
             x: x,
             y: y,
-            color: particle.color
+            colour: colour
           });
       };
 
-      setInterval(function(){
-      }, 1000);
+      // setInterval(function(){
+      // }, 1000);
 
       demo.update = function() {
 
@@ -196,7 +213,7 @@
               touch = demo.touches[i], max = random( 1, 4 );
               for ( j = 0; j < max; j++ ) {
                 console.log(touch.x, touch.y);
-                demo.spawn( touch.x, touch.y );
+                demo.spawn( touch.x, touch.y, colour);
               }
           }
       };
@@ -226,16 +243,18 @@
         output.innerHTML += "y gamma: " + y + "\n";
 
         // spawn particles
-        demo.spawn(x, y);
+        demo.spawn(x, y, colour);
       };
 
       socket.on('spawnParticle', onSpawnEvent);
 
+      //We need to rewrite the spawn function to accept colours as well as coordinates
       function onSpawnEvent(data){
-        demo.spawn(data.x, data.y);
+        demo.spawn(data.x, data.y, data.colour);
       }
 
-      
+
+
 
       if (window.DeviceOrientationEvent) {
         window.addEventListener('deviceorientation', throttle(handleOrientation, 100));
