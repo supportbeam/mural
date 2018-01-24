@@ -129,7 +129,7 @@
     var object = {};
 
     for ( var key in target ) {
-      
+
       if ( key === 'webkitMovementX' || key === 'webkitMovementY' )
         continue;
 
@@ -161,7 +161,7 @@
     var touches = [];
     var resized = false;
     var setup = false;
-    var ratio = win.devicePixelRatio || 1;
+    var ratio = win.devicePixelRatio || 2;
     var isDiv = context.type == DOM;
     var is2D = context.type == CANVAS;
 
@@ -250,7 +250,7 @@
           if ( context.retina ) {
 
             context.save();
-            
+
             if (context.autoclear) {
               context.scale( ratio, ratio );
             }

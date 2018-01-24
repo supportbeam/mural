@@ -3,7 +3,6 @@
   <head>
     <title>Mural</title>
     <script src="/socket.io/socket.io.js"></script>
-    <link rel="stylesheet" href="css/example.css">
     <style type="text/css">
         html, body {
             background: #222;
@@ -80,7 +79,7 @@
       // ----------------------------------------
 
 
-      var COLOURS = [ '#69D2E7', '#A7DBD8', '#E0E4CC', '#F38630', '#FA6900', '#FF4E50', '#F9D423' ];
+      var COLOURS = [ '#69D2E7', '#E0E4CC', '#F38630', '#FA6900', '#FF4E50', '#F9D423' , '#2AFEB7' , '#A020F0' , '#F399AA' , '#F3EAC5' , '#87A922' , '#007AFF' , '#9EFD38' , '#18D17B' , '#FFF5EE'];
 
       let connected = false;
       let username, colour;
@@ -119,7 +118,7 @@
       });
 
       //Commented out
-      var MAX_PARTICLES = 800; //Changed from 250 to 8
+      var MAX_PARTICLES = 400; //Changed from 250 to 8
       //all of the users share this max of particles, so if one user draws more the others users' particles will disappear, is a bit odd if there is on a single user however
       //Moved colours array up to where the socket information is
 
@@ -127,8 +126,11 @@
       var pool = [];
 
       var demo = Sketch.create({
-          container: document.getElementById( 'container' ),
-          retina: 'auto'
+          //container: document.getElementById( 'container' ),
+          //retina: 'auto'
+          fullscreen: false,
+          width: 1468,
+          height: 741
       });
 
       // create particles with x, y coordinate input
@@ -155,7 +157,7 @@
           particle.drag = random( 0.9, 0.99 );
 
           theta = random( TWO_PI );
-          force = random( 2, 8 );
+          force = random( 2, 3 );
 
           particle.vx = sin( theta ) * force;
           particle.vy = cos( theta ) * force;
