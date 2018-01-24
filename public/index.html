@@ -9,13 +9,6 @@
             background: #222;
         }
     </style>
-    <script>
-      // document.addEventListener("DOMContentLoaded", function(event) {
-      //   let socket = io();
-      //
-      //
-      // });
-    </script>
   </head>
   <body>
       <pre class="output"></pre>
@@ -67,10 +60,10 @@
               // this.radius *= 0.96;
               this.radius *= 0.99;
               // this.alive = this.radius > 0.5;
-              this.alive = this.radius > 15; // circles land when radius is greater than 10.8 (set the final radius of circles)
+              this.alive = this.radius > 20; // circles land when radius is greater than 10.8 (set the final radius of circles)
 
 
-              this.alive = false; //Stops particles from flying away
+              //this.alive = false; //Stops particles from flying away
           },
 
           draw: function( ctx ) {
@@ -126,7 +119,7 @@
       });
 
       //Commented out
-      var MAX_PARTICLES = 280; //Changed from 250 to 8
+      var MAX_PARTICLES = 800; //Changed from 250 to 8
       //all of the users share this max of particles, so if one user draws more the others users' particles will disappear, is a bit odd if there is on a single user however
       //Moved colours array up to where the socket information is
 
@@ -137,19 +130,6 @@
           container: document.getElementById( 'container' ),
           retina: 'auto'
       });
-
-      //Don't need starter particles
-      // demo.setup = function() {
-      //
-      //     // Set off some initial particles without user input.
-      //     var i, x, y;
-      //
-      //     for ( i = 0; i < 2; i++ ) { //Changed from i<5 to i<2
-      //         x = ( demo.width * 0.5 ) + random( -100, 100 );
-      //         y = ( demo.height * 0.5 ) + random( -100, 100 );
-      //         demo.spawn( x, y );
-      //     }
-      // };
 
       // create particles with x, y coordinate input
       demo.spawn = function( x, y, colour ) {
@@ -200,6 +180,7 @@
           for ( i = particles.length - 1; i >= 0; i-- ) {
 
               particle = particles[i];
+
 
               if ( particle.alive ) particle.move();
 
@@ -265,9 +246,6 @@
         x  = (w*x/180 - 10);
         y = (h*y/180 - 10);
 
-        output.innerHTML  = "x beta : " + x + "\n";
-        output.innerHTML += "y gamma: " + y + "\n";
-
         // spawn particles
         demo.spawn(x, y, colour);
         console.log(particles);
@@ -284,7 +262,7 @@
 
 
       if (window.DeviceOrientationEvent) {
-        window.addEventListener('deviceorientation', throttle(handleOrientation, 100));
+        window.addEventListener('deviceorientation', throttle(handleOrientation, 1));
         //This is the event that ends up drawing particles
       } else {
         alert("Sorry, your browser doesn't support Device Orientation");
