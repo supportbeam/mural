@@ -118,7 +118,7 @@
       });
 
       //Commented out
-      var MAX_PARTICLES = 400; //Changed from 250 to 8
+      var MAX_PARTICLES = 2000; //Changed from 250 to 8
       //all of the users share this max of particles, so if one user draws more the others users' particles will disappear, is a bit odd if there is on a single user however
       //Moved colours array up to where the socket information is
 
@@ -147,9 +147,9 @@
 
           //particle = new Particle();
 
-          particle.init( x, y, random( 5, 40 ) );
+          particle.init( x, y, random( 1 , 20 ) );
 
-          particle.wander = random( 0.5, 2.0 );
+          particle.wander = random( 0.5, 1.5 );
           particle.color = colour;
 
           //particle.color = random( COLOURS );
@@ -227,31 +227,75 @@
           }
       };
 
+      // Old phone orientation code
+      // function handleOrientation(event){
+      //   var particle, theta, force, touch, max, i, j, n;
+      //   var y = event.beta;  // In degree in the range [-180,180]
+      //   var x = event.gamma; // In degree in the range [-90,90]
+      //   var output = document.querySelector('.output');
+      //
+      //   // Because we don't want to have the device upside down
+      //   // We constrain the x value to the range [-90,90]
+      //   if (x >  90) { x =  90};
+      //   if (x < -90) { x = -90};
+      //
+      //   // To make computation easier we shift the range of
+      //   // x and y to [0,180]
+      //   x += 90;
+      //   y += 90;
+      //
+      //   var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+      //   var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+      //   x  = (w*x/180 - 10);
+      //   y = (h*y/180 - 10);
+      //
+      //   // spawn particles
+      //   demo.spawn(x, y, colour);
+      //   console.log(particles);
+      // };
+
       function handleOrientation(event){
-        var particle, theta, force, touch, max, i, j, n;
-        var y = event.beta;  // In degree in the range [-180,180]
-        var x = event.gamma; // In degree in the range [-90,90]
-        var output = document.querySelector('.output');
+       // var particle, theta, force, touch, max, i, j, n;
+       var y = Math.round(event.beta)-41;  // In degree in the range [-90,90] - 41 is assuming user is holding phone normally
+       var x = Math.round(event.gamma); // In degree in the range [-180,180]
+       var output = document.querySelector('.output');
+       // console.log("Y: " + y + " X: " + x);
+       //Calculates the max width and height of mobile device -- Set to hardcoded values for projection on external monitor
+       var mobileW = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+       var mobileH = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+       var centerX = mobileW/2; var centerY = mobileH/2;
 
-        // Because we don't want to have the device upside down
-        // We constrain the x value to the range [-90,90]
-        if (x >  90) { x =  90};
-        if (x < -90) { x = -90};
+       //Change these values for deviceOrientation sensitivity
+       //begX: Max left tilt, endX = Max right tilt
+       var begX = -29; var endX = 29;
+       //begY: Max forward tilt, endY = Max backward tilt
+       var begY = -20; var endY = 39;
 
-        // To make computation easier we shift the range of
-        // x and y to [0,180]
-        x += 90;
-        y += 90;
+       var orientationWidth = endX - begX;
+       var moveX = mobileW/orientationWidth;
+       var moveY = mobileH/orientationWidth;
 
-        var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-        var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-        x  = (w*x/180 - 10);
-        y = (h*y/180 - 10);
+       // Allows the user to reach the entire screen
+       if      (x >= endX) { x = mobileW;}
+       else if (x <= begX) { x = 0;}
+       else if (x < endX && x > begX) { x = (x - begX) * moveX;}
 
-        // spawn particles
-        demo.spawn(x, y, colour);
-        console.log(particles);
-      };
+       if      (y >= endY){ y = mobileH;}
+       else if (y <= begY){ y = 0;}
+       else if (y < endY && y > begY) { y = (y - begY) * moveY;}
+       // console.log("Y: " + y + " X: " + x);
+
+       // To make computation easier we shift the range of
+       // x and y to [0,180]
+       // x *= 3;
+       // y *= 3;
+
+       // x = (w*x/180 - 10);
+       // y = (h*y/180 - 10);
+
+       // spawn particles
+       demo.spawn(x, y, colour);
+     };
 
       socket.on('spawnParticle', onSpawnEvent);
 
@@ -261,7 +305,6 @@
         // }, 100);
         demo.spawn(data.x, data.y, data.colour);
       }
-
 
       if (window.DeviceOrientationEvent) {
         window.addEventListener('deviceorientation', throttle(handleOrientation, 1));
